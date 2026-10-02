@@ -76,4 +76,47 @@ module fifo #(
 
     assign full = (count == FIFO_DEPTH);  // FIFO full when count reaches depth
 
+        // =========================================================
+    // SYSTEMVERILOG ASSERTIONS
+    // =========================================================
+
+    // 1. Do not write when FIFO is full
+    property no_write_when_full;
+        @(posedge clk)
+        full |-> !(wr_en);
+    endproperty
+
+    assert property (no_write_when_full)
+        else $error("ERROR: Write attempted when FIFO is FULL");
+
+
+    // 2. Do not read when FIFO is empty
+    property no_read_when_empty;
+        @(posedge clk)
+        empty |-> !(rd_en);
+    endproperty
+
+    assert property (no_read_when_empty)
+        else $error("ERROR: Read attempted when FIFO is EMPTY");
+
+
+    // 3. FIFO should be empty after reset
+    property fifo_empty_after_reset;
+        @(posedge clk)
+        rst |-> empty;
+    endproperty
+
+    assert property (fifo_empty_after_reset)
+        else $error("ERROR: FIFO is not EMPTY during reset");
+
+
+    // 4. FIFO count should never exceed its depth
+    property count_within_limit;
+        @(posedge clk)
+        count <= FIFO_DEPTH;
+    endproperty
+
+    assert property (count_within_limit)
+        else $error("ERROR: FIFO count exceeded maximum depth");
+
 endmodule
